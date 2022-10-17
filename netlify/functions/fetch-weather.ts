@@ -1,7 +1,7 @@
-import { Handler } from "@netlify/functions";
+import { Handler } from '@netlify/functions';
 import axios from 'axios';
 
-const handler: Handler = async (event, context) => {
+const handler: Handler = async event => {
   if (!event.queryStringParameters) throw new Error('Missing query parameters');
   const { lat, long, lang } = event.queryStringParameters;
   const API_KEY = process.env.API_KEY;
@@ -14,21 +14,32 @@ const handler: Handler = async (event, context) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
-    }
+      body: JSON.stringify(data),
+    };
   } catch (error) {
     // check if the error was thrown from axios
     if (axios.isAxiosError(error)) {
       const { status, message, code } = error;
 
+      if (!status) {
+        throw new Error('No status returned');
+      }
+
       return {
-        statusCode: status!,
+        statusCode: status,
         body: JSON.stringify({ status, message, code }),
       };
-    } else {
-      throw new Error('different error than axios');
     }
+
+    const status = 500;
+    const message = 'Not axios error';
+
+    return {
+      statusCode: status,
+      body: JSON.stringify({ status, message }),
+    };
   }
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export { handler };

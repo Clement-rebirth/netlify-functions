@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const axios_1 = __importDefault(require("axios"));
-const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
+const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     if (!event.queryStringParameters)
         throw new Error('Missing query parameters');
     const { lat, long, lang } = event.queryStringParameters;
@@ -25,21 +25,27 @@ const handler = (event, context) => __awaiter(void 0, void 0, void 0, function* 
         const { data } = yield axios_1.default.get(url);
         return {
             statusCode: 200,
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         };
     }
     catch (error) {
         // check if the error was thrown from axios
         if (axios_1.default.isAxiosError(error)) {
             const { status, message, code } = error;
+            if (!status) {
+                throw new Error('No status returned');
+            }
             return {
                 statusCode: status,
                 body: JSON.stringify({ status, message, code }),
             };
         }
-        else {
-            throw new Error('different error than axios');
-        }
+        const status = 500;
+        const message = 'Not axios error';
+        return {
+            statusCode: status,
+            body: JSON.stringify({ status, message }),
+        };
     }
 });
 exports.handler = handler;
